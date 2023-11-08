@@ -1,142 +1,96 @@
-#include<stdio.h> 
-#include<stdlib.h>
-int main() 
-{ 
-  int c,j,n,time,remain,signal=0,time_quantum,sys=0,s,choice,i; 
-  int wait_time=0,turnaround_time=0,ct,a_t[10],b_t[10],r_t[10]; 
-  while(1)
-  {
-  	
-  	printf("1.Student requests: \n2.Faculty requests:\n3.Exit: \nPlease enter your choice :\t");
- 	scanf("%d",&s);
-  	switch(s)
-  {
-  	case 1: 
-  			printf("Enter Total no of student Process:\t "); 
-  			scanf("%d",&n); 
-  			remain=n; 
-  			for(i=0;i<n;i++) 
-  			{			 
-    			printf("Enter Arrival Time and Burst Time for Process Process Number %d :",i+1); 
-    			scanf("%d",&a_t[i]); 
-    			scanf("%d",&b_t[i]); 
-    			r_t[i]=b_t[i]; 
-  			}		 
-  			printf("Enter Time Quantum:\t"); 
-  			scanf("%d",&time_quantum); 
-  			printf("\n\nProcess\t|Turnaround Time |Waiting Time  |Completion Time   |Situation\n\n"); 
-  			for(time=0,c=0;remain!=0;) 			{ 
-    		if(r_t[c]<=time_quantum && r_t[c]>0) 
-    		{ 
-      			time+=r_t[c]; 
-      			r_t[c]=0; 
-      			signal=1; 
-    		} 
-    		else if(r_t[c]>0) 
-    		{		 
-      			r_t[c]-=time_quantum; 
-      			time+=time_quantum; 
-    		} 
-    		if(r_t[c]==0 && signal==1) 
-    		{ 
-      			remain--; 
-      			wait_time+=time-a_t[c]-b_t[c]; 
-      			turnaround_time+=time-a_t[c]; 
-				ct = turnaround_time+wait_time;
-      			printf("P[%d]\t|\t%d\t|\t%d\t|\t%d\t|\t",c+1,time-a_t[c],time-a_t[c]-b_t[c],ct);
-      			if(ct >= 120)
-      			{
-      				printf( "Query not handled\n");	
-				}
-				else
-				{
-					printf("Query Handled successfully\n");
-				}
-      			signal=0; 
-    		} 
-    		if(c==n-1) 
-      		c=0; 
-    		else if(a_t[c+1]<=time) 
-      		c++; 
-    		else 
-      		c=0; 
-  			} 
-  			printf("\nAverage Waiting Time= %f\n",wait_time*1.0/n); //waiting time
-  			printf("Avg Query time= %f",turnaround_time*1.0/n); //turn around time
-  			if(ct<=120)
-  			{
-  					printf("\n **All the queries handled successfully** :");
-  					printf("\nTotal time taken to complete : %d\n",ct);			
-			  }
-			else
-			 {
-			 	printf("\n\n**Working time is out for this session some queries not handled will be handled on next session**:\n");
-			 	printf("\nExtra time required to complete your queries is : %d\n",ct-120);	 	
-			 }
-			 break;
-  		
-	case 2:	printf("Faculty Processes initiates here: ");
-  			printf("Enter Total Process:\t "); 
-  			scanf("%d",&n); 
-  			remain=n; 
-  			for(c=0;c<n;c++) 
-  			{			 
-    			printf("Enter Arrival Time and Burst Time for Process Process Number %d :",c+1); 
-    			scanf("%d",&a_t[c]); 
-    			scanf("%d",&b_t[c]); 
-    			r_t[c]=b_t[c]; 
-  			}		 
-  			printf("Enter Time Quantum:\t"); 
-  			scanf("%d",&time_quantum); 
-  			printf("\n\nProcess\t|Turnaround Time|Waiting Time|Completion Time|Situa_tion\n\n"); 
-  			for(time=0,c=0;remain!=0;) 
-  			{ 
-    		if(r_t[c]<=time_quantum && r_t[c]>0) 
-    		{ 
-      			time+=r_t[c]; 
-      			r_t[c]=0; 
-      			signal=1; 
-    		} 
-    		else if(r_t[c]>0) 
-    		{		 
-      			r_t[c]-=time_quantum; 
-      			time+=time_quantum; 
-    		} 
-    		if(r_t[c]==0 && signal==1) 
-    		{ 
-      			remain--; 
-      			wait_time+=time-a_t[c]-b_t[c]; 
-      			turnaround_time+=time-a_t[c]; 
-      			ct = turnaround_time+wait_time;
-      			printf("P[%d]\t|\t%d\t|\t%d\t|\t%d\t|\t",c+1,time-a_t[c],time-a_t[c]-b_t[c],ct); 
-			   if(ct >= 120)
-      			{
-      			          printf("not Achievable\n");	
-				}
-				else
-				{
-				          printf(" Achievable\n");
-				}
-				signal=0; 
-    		} 
-    		if(c==n-1) 
-      		c=0; 
-    		else if(a_t[c+1]<=time) 
-      		c++; 
-    		else 
-      		c=0; 
-  			} 
-  			printf("\nAverage Waiting Time= %f\n",wait_time*1.0/n); //waiting time
-  			printf("Avg Query time= %f\n",turnaround_time*1.0/n); //turn around time
-			break;
-	case 3:
-			printf("Thank you\n");
-			exit(1);
-			break;
-	default: printf("Entered choices other than 1 or 2: \n");
-	break;
-  }
-  }
-  
-  return 0;
+/*
+Sudesh Sharma is a Linux expert who wants to have an online system where he can handle student queries. 
+Since there can be multiple requests at any time he wishes to dedicate a fixed amount of time to every request
+ so that everyone gets a fair share of his time. He will log into the system from 10am to 12am only. He wants to
+  have separate requests queues for students and faculty. Implement a strategy for the same. The summary at the
+   end of the session should include the total time he spent on handling queries and average query time.
+*/
+
+#include <stdio.h>
+
+#define MAX_PROCESSES 20
+
+struct Process {
+    int process_id;
+    char name[20];
+    int arrival_time;
+    int burst_time;
+    int remaining_time;
+};
+float x,y,a;
+
+
+void roundRobin(struct Process processes[], int n, int time_quantum) {
+    int total_burst_time = 0;
+    int current_time = 0;
+
+    for (int i = 0; i < n; i++) {
+        processes[i].remaining_time = processes[i].burst_time;
+        total_burst_time += processes[i].burst_time;
+    }
+     x=total_burst_time;
+     y=n;
+
+    while (total_burst_time > 0 && current_time <= 120) {
+        int process_executed = 0; 
+        for (int i = 0; i < n; i++) {
+            if (processes[i].remaining_time > 0) {
+                int execute_time = (processes[i].remaining_time < time_quantum) ? processes[i].remaining_time : time_quantum;
+                if (current_time + execute_time <= 120) {
+                    processes[i].remaining_time -= execute_time;
+                    total_burst_time -= execute_time;
+                    current_time += execute_time;
+                    printf("Process %d (%s) is being handled for %d units of time. Current time: %d\n", processes[i].process_id, processes[i].name, execute_time, current_time);
+                    process_executed = 1;
+                    a=current_time;
+                } else {
+                    printf("Process %d (%s) cannot be handled to avoid exceeding the time limit. Current time: %d\n", processes[i].process_id, processes[i].name, current_time);
+                    break; 
+                }
+            }
+        }
+        if (!process_executed) {
+            current_time++;
+            break;
+        }
+    }
+}
+
+
+int main() {
+    int n;
+    printf("Enter the number of processes (up to 20): ");
+    scanf("%d", &n);
+
+    if (n < 1 || n > MAX_PROCESSES) {
+        printf("Invalid number of processes. Please enter a number between 1 and 20.\n");
+        return 1; 
+    }
+
+
+    struct Process processes[MAX_PROCESSES];
+
+    printf("Enter process details (name, arrival time, and burst time) for each process:\n");
+    for (int i = 0; i < n; i++) {
+        processes[i].process_id = i + 1;
+        printf("Process %d:\n", i + 1);
+        printf("Name: ");
+        scanf("%s", processes[i].name);
+        printf("Arrival Time: ");
+        scanf("%d", &processes[i].arrival_time);
+        printf("Burst Time: ");
+        scanf("%d", &processes[i].burst_time);
+    }
+
+    int time_quantum;
+    printf("Enter the time quantum: ");
+    scanf("%d", &time_quantum);
+
+    roundRobin(processes, n, time_quantum);
+    
+    printf("The total time taken for handling the queries is %f\n",a);
+    printf("The average time taken for handling the queries is %2f\n",a/y);
+    
+
+    return 0;
 }
